@@ -23,6 +23,10 @@
         from_port: 8080
         to_port: 8080
         cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 443
+        to_port: 443
+        cidr_ip: 0.0.0.0/0
 
   - name: Start instances
     ec2:
@@ -40,7 +44,7 @@
   - name: add host to group 'Build'
     add_host:
       name: "{{ output.instances[0].public_ip }}"
-      groups: Buld
+      groups: Build
   - name: add host to group "App"
     add_host:
       name: "{{ output.instances[1].public_ip }}"
@@ -48,7 +52,8 @@
 
 - name: Build provisioning
   hosts: Build
-  become: yes
+  remote_user: ubuntu
+
   tasks:
   - name: Ensure necessary packages is present
     apt:
