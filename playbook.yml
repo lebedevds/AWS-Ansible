@@ -53,7 +53,6 @@
 - name: Build provisioning
   hosts: Build
   remote_user: ubuntu
-  sudo: True
 
   tasks:
   - name: Ensure necessary packages is present
@@ -84,7 +83,6 @@
 - name: Prod server provisioning
   hosts: App
   remote_user: ubuntu
-  sudo: True
 
   tasks:
     - name: Ensure tomcat is present
