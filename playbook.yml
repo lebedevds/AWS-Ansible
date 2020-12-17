@@ -83,7 +83,8 @@
 
 - name: Prod server provisioning
   hosts: App
-  become: yes
+  remote_user: ubuntu
+  sudo: True
 
   tasks:
     - name: Ensure tomcat is present
