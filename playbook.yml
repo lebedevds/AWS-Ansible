@@ -37,10 +37,12 @@
       group: EC2-sec
       region: us-east-2
     register: output
-  - name: add host to group 'just_created'
+  - name: add host to group 'Build'
     add_host:
       name: "{{ output.instances[0].public_ip }}"
       groups: Buld
+  - name: add host to group "App"
+    add_host:
       name: "{{ output.instances[1].public_ip }}"
       groups: App
 
