@@ -40,10 +40,12 @@
   - name: add host to group 'just_created'
     add_host:
       name: "{{ output.instances[0].public_ip }}"
-      groups: just_created
-      loop: "{{ ansible_play_hosts }}"
+      groups: Buld
+      name: "{{ output.instances[1].public_ip }}"
+      groups: App
+
 - name: Build provisioning
-  hosts: "{{ output.instances[0].public_ip }}"
+  hosts: Build
   become: yes
   tasks:
   - name: Ensure necessary packages is present
@@ -53,3 +55,36 @@
       state: present
     vars:
       packages:
+      - default-jdk
+      - maven
+      - git
+
+  - name: Ensure the git repository is cloned
+    git:
+      repo: 'https://github.com/boxfuse/boxfuse-sample-java-war-hello.git'
+      dest: /tmp/WAR
+      clone: yes
+
+  - name: Ensure war file is ready
+    command: mvn package -f /tmp/WAR/pom.xml
+
+#  - name: Ensure war file on local host
+#    fetch:
+#      src: /tmp/WAR/target/hello-1.0.war
+#      dest: /tmp/
+
+- name: Prod server provisioning
+  hosts: App
+  become: yes
+
+  tasks:
+    - name: Ensure tomcat is present
+      apt:
+        update_cache: yes
+        name: tomcat9
+        state: present
+
+#    - name: Ensure war file on prod server
+#      copy:
+#        src: /tmp/dev1/tmp/WAR/target/hello-1.0.war
+#        dest: /var/lib/tomcat9/webapps/hello-1.0.war
