@@ -1,0 +1,55 @@
+---
+- name: Localhost provisioning
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  become: yes
+  tasks:
+  - name: Create an empty bucket
+    amazon.aws.aws_s3:
+      bucket: mybacket1.test5.com
+      mode: create
+      permission: public-read
+  - name: ec2 group
+    amazon.aws.ec2_group:
+      name: EC2-sec
+      description: WAR EC2 group
+      rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 8080
+        to_port: 8080
+        cidr_ip: 0.0.0.0/0
+
+  - name: Start instances
+    ec2:
+      instance_type: t2.micro
+      key_name: my-key1
+      image: ami-0dd9f0e7df0f0a138
+      wait: yes
+      wait_timeout: 900
+      count: 2
+      vpc_subnet_id: subnet-596e7223
+      assign_public_ip: yes
+      group: EC2-sec
+      region: us-east-2
+    register: output
+  - name: add host to group 'just_created'
+    add_host:
+      name: "{{ output.instances[0].public_ip }}"
+      groups: just_created
+      loop: "{{ ansible_play_hosts }}"
+- name: Build provisioning
+  hosts: "{{ output.instances[0].public_ip }}"
+  become: yes
+  tasks:
+  - name: Ensure necessary packages is present
+    apt:
+      update_cache: yes
+      name: "{{ packages }}"
+      state: present
+    vars:
+      packages:
